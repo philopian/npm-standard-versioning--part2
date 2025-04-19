@@ -55,13 +55,13 @@ jobs:
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           
-
       
       - name: Extract latest release notes from CHANGELOG.md
         id: changelog
         run: |
           VERSION="v${{ steps.release.outputs.NEW_VERSION }}"
-          awk "/^##* \\[?${VERSION//./\\.}\\]?/ {flag=1; print; next} /^##* / {flag=0} flag" CHANGELOG.md > release-notes.md
+          # Extract the section for the new version, skipping the first line (release commit)
+          awk "/^##* \\[?${VERSION//./\\.}\\]?/ {flag=1; next} /^##* / {flag=0} flag" CHANGELOG.md > release-notes.md
           echo "::set-output name=body::$(cat release-notes.md)"
 
       - name: Push changes
