@@ -5,7 +5,19 @@ const app = new Hono();
 
 app.get("/", (c) => {
   return c.json({
-    message: "Hello, Hono",
+    message: "Hello, Hono!",
+  });
+});
+
+app.get("/hello", (c) => {
+  return c.json({
+    message: "Hello, Hono!",
+  });
+});
+
+app.get("/hello2", (c) => {
+  return c.json({
+    message: "Hello, Hono!",
   });
 });
 
