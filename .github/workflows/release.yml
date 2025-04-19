@@ -64,6 +64,7 @@ jobs:
         run: |
           VERSION="v${{ steps.release.outputs.NEW_VERSION }}"
           awk "/^##* \\[?${VERSION//./\\.}\\]?/ {flag=1; print; next} /^##* / {flag=0} flag" CHANGELOG.md > release-notes.md
+          echo "::set-output name=body::$(cat release-notes.md)"
 
       - name: Create GitHub Release
         id: create_release
@@ -73,6 +74,6 @@ jobs:
         with:
           tag_name: v${{ steps.release.outputs.NEW_VERSION }}
           release_name: Release v${{ steps.release.outputs.NEW_VERSION }}
-          body_path: release-notes.md
+          body: ${{ steps.changelog.outputs.body }}
           draft: false
           prerelease: false
