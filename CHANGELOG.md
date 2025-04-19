@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.2](https://github.com/philopian/npm-standard-versioning--part2/compare/v0.0.1...v0.0.2) (2025-04-19)
+
+
+### Features
+
+* include release notes in GitHub release body ([1508c8b](https://github.com/philopian/npm-standard-versioning--part2/commit/1508c8bcd267bd928fbcb50fca9184e3e20bd2fb))
+* remove /hello route from the application ([404e5f5](https://github.com/philopian/npm-standard-versioning--part2/commit/404e5f5e10e7387284c172e52721271fa24790e2))
+* remove /hello2 route from the application ([8dc3822](https://github.com/philopian/npm-standard-versioning--part2/commit/8dc38224d660e807a4e14b6c02f265735fa6c179))
+
 ### 0.0.1 (2025-04-19)
 
 
