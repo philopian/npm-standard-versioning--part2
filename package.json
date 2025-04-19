@@ -1,6 +1,6 @@
 {
   "name": "npm-standard-versioning--part2",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "private": true,
   "description": "Messing around with npm package standard-version",
   "license": "ISC",
@@ -17,7 +17,9 @@
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/github": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^22.14.1",
     "esbuild": "^0.25.2",
     "standard-version": "^9.5.0",
