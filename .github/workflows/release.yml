@@ -4,7 +4,9 @@ on:
     types: [closed]
     branches:
       - main
-
+permissions:
+  contents: write
+  pull-requests: write
 jobs:
   release:
     if: github.event.pull_request.merged == true
@@ -39,28 +41,30 @@ jobs:
           fi
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
       
-      - name: Release with standard-version
+      - name: Fetch and merge PR commits
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr
+          git merge pr --no-ff --no-edit
+      
+      - name: Release with standard-version (include squash & merge commits)
         id: release
         run: |
-          # Perform the version update
-          npm run release -- --release-as ${{ steps.release-type.outputs.RELEASE_TYPE }} --no-verify
+          # Perform the version update, including all commits (squash & merge)
+          npx standard-version --commit-all --release-as ${{ steps.release-type.outputs.RELEASE_TYPE }} --no-verify
+          # Extract the new version from package.json for use in the next step
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           
-          # Use import instead of require since type is module
-          NEW_VERSION=$(node -e "import fs from 'fs'; console.log(JSON.parse(fs.readFileSync('./package.json', 'utf8')).version)")
-          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          
-          # Create release notes file with proper format
-          {
-            echo "## Release v${NEW_VERSION}"
-            echo ""
-            # Extract relevant content between current version and next version
-            sed -n "/## \\[${NEW_VERSION}\\]/,/## \\[/p" CHANGELOG.md | sed '$d' | tail -n +2
-          } > release-notes.md
-      
       - name: Push changes
         run: |
           git push --follow-tags origin main
       
+      - name: Extract latest release notes from CHANGELOG.md
+        id: changelog
+        run: |
+          VERSION="v${{ steps.release.outputs.NEW_VERSION }}"
+          awk "/^##* \\[?${VERSION//./\\.}\\]?/ {flag=1; print; next} /^##* / {flag=0} flag" CHANGELOG.md > release-notes.md
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
