@@ -1,0 +1,74 @@
+name: Auto Release
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: Get release type from labels
+        id: release-type
+        run: |
+          RELEASE_TYPE="patch"  # Default
+          if ${{ contains(github.event.pull_request.labels.*.name, 'major') }}; then
+            RELEASE_TYPE="major"
+          elif ${{ contains(github.event.pull_request.labels.*.name, 'minor') }}; then
+            RELEASE_TYPE="minor"
+          fi
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
+      
+      - name: Release with standard-version
+        id: release
+        run: |
+          # Perform the version update
+          npm run release -- --release-as ${{ steps.release-type.outputs.RELEASE_TYPE }} --no-verify
+          
+          # Use import instead of require since type is module
+          NEW_VERSION=$(node -e "import fs from 'fs'; console.log(JSON.parse(fs.readFileSync('./package.json', 'utf8')).version)")
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          
+          # Create release notes file with proper format
+          {
+            echo "## Release v${NEW_VERSION}"
+            echo ""
+            # Extract relevant content between current version and next version
+            sed -n "/## \\[${NEW_VERSION}\\]/,/## \\[/p" CHANGELOG.md | sed '$d' | tail -n +2
+          } > release-notes.md
+      
+      - name: Push changes
+        run: |
+          git push --follow-tags origin main
+      
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.release.outputs.NEW_VERSION }}
+          release_name: Release v${{ steps.release.outputs.NEW_VERSION }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
