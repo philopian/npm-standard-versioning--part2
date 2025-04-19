@@ -21,6 +21,12 @@ app.get("/something2", (c) => {
   });
 });
 
+app.get("/something3", (c) => {
+  return c.json({
+    message: "Hello, somthing!",
+  });
+});
+
 serve(
   {
     fetch: app.fetch,
